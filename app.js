@@ -5,6 +5,11 @@ const fs = require('fs');
 const PORT = process.env.PORT || 3001;
 
 const app = express();
+
+// Body Parser Middleware
+// allows to handle raw json
+app.use(express.json());
+// allows to handle form submissions
 app.use(express.urlencoded({ extended: true }));
 
 //Static folder
@@ -79,5 +84,7 @@ app.post('/api/notes', (req, res) => {
 		res.status(500).json('Error in posting Note');
 	}
 });
+
+//delete
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
