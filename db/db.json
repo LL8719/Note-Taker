@@ -1,14 +1,12 @@
 [
     {
-        "title": "Test Title",
-        "text": "Test text"
+        "title": "test 1",
+        "text": "test1",
+        "id": "60"
     },
     {
-        "title": "Test 2",
-        "text": "Test 2"
-    },
-    {
-        "title": "asdfsadf",
-        "text": "asdfsdfsa"
+        "title": "test 2 ",
+        "text": "test 2",
+        "id": "60"
     }
 ]

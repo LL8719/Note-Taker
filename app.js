@@ -2,6 +2,9 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 
+const uuid = require('uuid');
+const uuidv4 = uuid.v4().substr(0, 2);
+
 const PORT = process.env.PORT || 3001;
 
 const app = express();
@@ -25,7 +28,7 @@ app.get('/notes', (req, res) =>
 	res.sendFile(path.join(__dirname, '/public/notes.html'))
 );
 
-// get request for current notes
+// get request for current api notes
 app.get('/api/notes', (req, res) => {
 	fs.readFile('./db/db.json', 'utf8', (err, data) => {
 		if (err) {
@@ -50,6 +53,7 @@ app.post('/api/notes', (req, res) => {
 		const newNote = {
 			title,
 			text,
+			id: uuidv4,
 		};
 		// Obtain existing notes
 		fs.readFile('./db/db.json', 'utf8', (err, data) => {
@@ -85,6 +89,35 @@ app.post('/api/notes', (req, res) => {
 	}
 });
 
-//delete
+// Delete Note
+app.delete('/api/notes/:id', (req, res) => {
+	console.info(`${req.method} request received to delete a note`);
+
+	fs.readFile('./db/db.json', 'utf8', (err, data) => {
+		if (err) {
+			console.error(err);
+		} else {
+			const parsedNotes = JSON.parse(data);
+
+			res.json(parsedNotes);
+			// convert to integer
+			const id = parseInt(req.params.id);
+
+			const deleteNote = parsedNotes.find((el) => el.id === id);
+			const noteIndex = parsedNotes.indexOf(deleteNote);
+
+			parsedNotes.splice(noteIndex, 1);
+
+			fs.writeFile(
+				'./db/db.json',
+				JSON.stringify(parsedNotes, null, 4),
+				(writeErr) =>
+					writeErr
+						? console.error(writeErr)
+						: console.info('Successfully updated notes!')
+			);
+		}
+	});
+});
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
