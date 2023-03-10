@@ -2,9 +2,6 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 
-const uuid = require('uuid');
-const uuidv4 = uuid.v4().substr(0, 2);
-
 const PORT = process.env.PORT || 3001;
 
 const app = express();
@@ -18,6 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 //Static folder
 app.use(express.static(path.join(__dirname, '/public')));
 
+app.use('/api/notes', require('./routes/api'));
+
 //link to Home page
 app.get('/', (req, res) =>
 	res.sendFile(path.join(__dirname, '/public/index.html'))
@@ -27,97 +26,5 @@ app.get('/', (req, res) =>
 app.get('/notes', (req, res) =>
 	res.sendFile(path.join(__dirname, '/public/notes.html'))
 );
-
-// get request for current api notes
-app.get('/api/notes', (req, res) => {
-	fs.readFile('./db/db.json', 'utf8', (err, data) => {
-		if (err) {
-			console.error(err);
-		} else {
-			const parsedNotes = JSON.parse(data);
-			res.json(parsedNotes);
-		}
-	});
-});
-
-// Post request to add note
-app.post('/api/notes', (req, res) => {
-	console.info(`${req.method} request received to add a note`);
-
-	// Destructuring assignment for the items in req.body
-	const { title, text } = req.body;
-
-	// If all the required properties are present
-	if (title && text) {
-		// Variable for the object we will save
-		const newNote = {
-			title,
-			text,
-			id: uuidv4,
-		};
-		// Obtain existing notes
-		fs.readFile('./db/db.json', 'utf8', (err, data) => {
-			if (err) {
-				console.error(err);
-			} else {
-				// Convert string into JSON object
-				const parsedNotes = JSON.parse(data);
-
-				// Add a new note
-				parsedNotes.push(newNote);
-
-				// Write updated notes back to the file
-				fs.writeFile(
-					'./db/db.json',
-					JSON.stringify(parsedNotes, null, 4),
-					(writeErr) =>
-						writeErr
-							? console.error(writeErr)
-							: console.info('Successfully updated notes!')
-				);
-			}
-		});
-		const response = {
-			status: 'success',
-			body: newNote,
-		};
-
-		console.log(response);
-		res.status(201).json(response);
-	} else {
-		res.status(500).json('Error in posting Note');
-	}
-});
-
-// Delete Note
-app.delete('/api/notes/:id', (req, res) => {
-	console.info(`${req.method} request received to delete a note`);
-
-	fs.readFile('./db/db.json', 'utf8', (err, data) => {
-		if (err) {
-			console.error(err);
-		} else {
-			const parsedNotes = JSON.parse(data);
-
-			res.json(parsedNotes);
-			// convert to integer
-			const id = parseInt(req.params.id);
-
-			const deleteNote = parsedNotes.find((el) => el.id === id);
-			const noteIndex = parsedNotes.indexOf(deleteNote);
-
-			parsedNotes.splice(noteIndex, 1);
-
-			fs.writeFile(
-				'./db/db.json',
-				JSON.stringify(parsedNotes, null, 4),
-				(writeErr) =>
-					writeErr
-						? console.error(writeErr)
-						: console.info('Successfully updated notes!')
-			);
-		}
-	});
-});
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
